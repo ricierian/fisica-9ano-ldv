@@ -32,6 +32,19 @@ const CABECALHO = ['Data e hora', 'E-mail', 'Turma', 'Evento', 'Tema', 'Lista', 
 
 const AZUL = '#1D4E89', BRANCO = '#FFFFFF';
 
+// Separador de argumentos das fórmulas: ',' (planilha em inglês) ou ';' (planilha em português).
+// O script descobre sozinho testando uma fórmula numa célula vazia.
+let SEP = ',';
+function descobrirSeparador(sh) {
+  const c = sh.getRange('Z1');
+  c.setFormula('=SUM(1,2)');
+  SpreadsheetApp.flush();
+  const ok = c.getValue() === 3;
+  c.clearContent();
+  SEP = ok ? ',' : ';';
+}
+function F(f) { return (SEP === ',' || typeof f !== 'string' || f[0] !== '=') ? f : f.replace(/,/g, ';'); }
+
 function configurar() {
   const ss = SpreadsheetApp.getActive();
 
@@ -41,6 +54,7 @@ function configurar() {
     .setFontWeight('bold').setBackground(AZUL).setFontColor(BRANCO);
   reg.setFrozenRows(1);
   reg.getRange('A:A').setNumberFormat('dd/MM/yyyy HH:mm');
+  descobrirSeparador(reg);
 
   TURMAS.forEach((t, i) => criarAbaTurma(ss, t, i + 1));
   criarChamada(ss, TURMAS.length + 1);
@@ -76,8 +90,8 @@ function criarAbaTurma(ss, t, pos) {
     .concat(LISTAS.map(l => l[1] + ' (melhor resultado)'), ['Tempo ativo total (min)']);
   cabecalho(tur, titulos);
 
-  tur.getRange('A2').setFormula(
-    '=IFERROR(SORT(UNIQUE(FILTER(Registros!B2:B,TO_TEXT(Registros!C2:C)="' + t + '"))),"")');
+  tur.getRange('A2').setFormula(F(
+    '=IFERROR(SORT(UNIQUE(FILTER(Registros!B2:B,TO_TEXT(Registros!C2:C)="' + t + '"))),"")'));
 
   const formulas = [];
   for (let r = 2; r <= LINHAS + 1; r++) {
@@ -93,7 +107,7 @@ function criarAbaTurma(ss, t, pos) {
     linha.push('=IF(' + a + '="","",SUMIFS(Registros!N:N,Registros!B:B,' + a + '))');
     formulas.push(linha);
   }
-  tur.getRange(2, 2, LINHAS, formulas[0].length).setFormulas(formulas);
+  tur.getRange(2, 2, LINHAS, formulas[0].length).setFormulas(formulas.map(r => r.map(F)));
   tur.getRange(2, 2, LINHAS, 1).setNumberFormat('dd/MM/yyyy HH:mm');
   tur.getRange(2, COL_LISTA1, LINHAS, LISTAS.length).setNumberFormat('0"/10"');
   tur.getRange(2, 2, LINHAS, formulas[0].length).setHorizontalAlignment('center');
@@ -119,7 +133,7 @@ function criarChamada(ss, pos) {
       const a = le + r;
       f.push(['=IF(' + a + '="","",IF(COUNTIF(Registros!B:B,LOWER(TRIM(' + a + ')))=0,"Não entrou","Entrou"))']);
     }
-    ch.getRange(2, colS, LINHAS, 1).setFormulas(f).setHorizontalAlignment('center');
+    ch.getRange(2, colS, LINHAS, 1).setFormulas(f.map(r => r.map(F))).setHorizontalAlignment('center');
     ch.setColumnWidth(colE, 260); ch.setColumnWidth(colS, 110);
     if (i < TURMAS.length - 1) { ch.setColumnWidth(colS + 1, 24); ch.getRange(1, colS + 1).setBackground(BRANCO); }
     const faixa = ch.getRange(2, colS, LINHAS, 1);
@@ -152,7 +166,7 @@ function criarResumo(ss) {
     });
     return l;
   });
-  res.getRange(2, 1, linhas.length, cab.length).setValues(linhas).setHorizontalAlignment('center');
+  res.getRange(2, 1, linhas.length, cab.length).setValues(linhas.map(r => r.map(F))).setHorizontalAlignment('center');
   LISTAS.forEach((_, k) => res.getRange(2, 6 + 2 * k, linhas.length, 1).setNumberFormat('0.0"/10"'));
   res.setColumnWidths(1, cab.length, 130);
   const r0 = TURMAS.length + 3;
