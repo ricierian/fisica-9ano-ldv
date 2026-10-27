@@ -617,9 +617,10 @@ async function enviarFila(){
 }
 window.addEventListener('online', enviarFila);
 function registrarAcessoDoDia(){
-  const hoje = new Date().toISOString().slice(0, 10);
+  const a = getAluno(); if (!CONFIG.registro || !a) return;
+  const marca = a.email + '|' + new Date().toISOString().slice(0, 10);
   let ult = null; try { ult = localStorage.getItem(DIA_KEY); } catch(e){}
-  if (ult !== hoje){ enviar({ evento: 'acesso' }); try { localStorage.setItem(DIA_KEY, hoje); } catch(e){} }
+  if (ult !== marca){ enviar({ evento: 'acesso' }); try { localStorage.setItem(DIA_KEY, marca); } catch(e){} }
 }
 /* Tempo ativo: conta só com a lista aberta, a tela visível e o aluno interagindo (pausa após 3 min parado) */
 let tMarca = null, tInter = Date.now();
