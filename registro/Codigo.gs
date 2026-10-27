@@ -9,11 +9,14 @@
  *       Executar como: Eu  ·  Quem pode acessar: Qualquer pessoa
  *     Copie a URL do App da Web e mande para o Claude.
  *
- * Abas criadas:
- *  - Resumo: por turma, quantos acessaram, quantos não, quantos concluíram cada lista e a média.
- *  - Turma 91, Turma 92, Turma 93: cole os e-mails dos alunos de cada turma na coluna A;
- *    o resto se calcula sozinho (laranja = o aluno escolheu outra turma no app).
+ * Abas criadas (o professor NÃO precisa digitar nada):
+ *  - Resumo: por turma, quantos entraram no app, quantos concluíram cada lista e a média.
+ *  - Turma 91, Turma 92, Turma 93: se preenchem sozinhas com os alunos que entraram no app
+ *    escolhendo aquela turma (último acesso, dias de acesso, melhor resultado, tempo).
+ *  - Chamada (opcional): se colar a lista de e-mails de cada turma, mostra quem ainda NÃO entrou.
  *  - Registros: uma linha por acesso diário e por lista concluída (preenchida pelo app).
+ *
+ * Pode rodar "configurar" de novo quando quiser: os registros e a chamada colada são mantidos.
  */
 
 const DOMINIO = 'COLOQUE_AQUI_O_DOMINIO'; // ex.: aluno.escola.com.br (sem o @)
@@ -22,31 +25,31 @@ const LISTAS = [
   ['Cinemática', 'Lista 1'],
   ['Cinemática', 'Lista 2']
 ];
-const LINHAS_TURMA = 60; // quantos alunos cabem em cada aba de turma
+const LINHAS = 80; // linhas preparadas por turma
 
 const CABECALHO = ['Data e hora', 'E-mail', 'Turma', 'Evento', 'Tema', 'Lista', 'Acertos', 'Total',
   'Básico', 'Intermediário', 'Avançado', 'Questões erradas', 'Dicas usadas', 'Tempo ativo (min)', 'Dispositivo'];
 
+const AZUL = '#1D4E89', BRANCO = '#FFFFFF';
+
 function configurar() {
   const ss = SpreadsheetApp.getActive();
 
-  // Aba Registros (o app preenche; não precisa mexer)
+  // Registros (o app preenche; não mexer)
   const reg = ss.getSheetByName('Registros') || ss.insertSheet('Registros');
   reg.getRange(1, 1, 1, CABECALHO.length).setValues([CABECALHO])
-    .setFontWeight('bold').setBackground('#1D4E89').setFontColor('#FFFFFF');
+    .setFontWeight('bold').setBackground(AZUL).setFontColor(BRANCO);
   reg.setFrozenRows(1);
   reg.getRange('A:A').setNumberFormat('dd/MM/yyyy HH:mm');
 
-  // Uma aba por turma: o professor cola os e-mails na coluna A
   TURMAS.forEach((t, i) => criarAbaTurma(ss, t, i + 1));
-
-  // Aba Resumo (primeira aba)
+  criarChamada(ss, TURMAS.length + 1);
   criarResumo(ss);
 
-  // Remove a aba vazia que vem com a planilha nova
-  ['Página1', 'Sheet1'].forEach(n => {
+  // Remove abas vazias que sobraram (planilha nova ou versão antiga do script)
+  ['Página1', 'Sheet1', 'Turma'].forEach(n => {
     const sh = ss.getSheetByName(n);
-    if (sh && sh.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sh);
+    if (sh && ss.getSheets().length > 1 && (n === 'Turma' || sh.getLastRow() === 0)) ss.deleteSheet(sh);
   });
 }
 
@@ -54,86 +57,107 @@ function nomeAba(t) { return 'Turma ' + t; }
 
 function letra(n) { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
 
-const COL_LISTA1 = 7; // coluna G: primeira lista
+function cabecalho(sh, titulos) {
+  sh.getRange(1, 1, 1, titulos.length).setValues([titulos])
+    .setFontWeight('bold').setBackground(AZUL).setFontColor(BRANCO).setWrap(true).setVerticalAlignment('middle');
+  sh.setFrozenRows(1);
+  sh.setRowHeight(1, 48);
+}
+
+// Colunas da aba de turma: A e-mail · B último acesso · C dias · D.. listas · depois tempo total
+const COL_LISTA1 = 4;
 
 function criarAbaTurma(ss, t, pos) {
   const nome = nomeAba(t);
   const tur = ss.getSheetByName(nome) || ss.insertSheet(nome, pos);
-  const titulos = ['E-mail do aluno', 'Nome (opcional)', 'Situação', 'Turma que o aluno escolheu no app', 'Último acesso', 'Dias de acesso']
-    .concat(LISTAS.map(l => l[0] + ' · ' + l[1] + ' (melhor resultado)'));
-  tur.getRange(1, 1, 1, titulos.length).setValues([titulos])
-    .setFontWeight('bold').setBackground('#1D4E89').setFontColor('#FFFFFF').setWrap(true);
-  tur.setFrozenRows(1);
+  tur.clear();
+  tur.clearConditionalFormatRules();
+  const titulos = ['E-mail do aluno (preenche sozinho)', 'Último acesso', 'Dias de acesso']
+    .concat(LISTAS.map(l => l[1] + ' (melhor resultado)'), ['Tempo ativo total (min)']);
+  cabecalho(tur, titulos);
+
+  tur.getRange('A2').setFormula(
+    '=IFERROR(SORT(UNIQUE(FILTER(Registros!B2:B,TO_TEXT(Registros!C2:C)="' + t + '"))),"")');
 
   const formulas = [];
-  for (let r = 2; r <= LINHAS_TURMA + 1; r++) {
-    const a = 'A' + r, e = 'LOWER(TRIM(' + a + '))';
+  for (let r = 2; r <= LINHAS + 1; r++) {
+    const a = 'A' + r;
     const linha = [
-      '=IF(' + a + '="","",IF(COUNTIF(Registros!B:B,' + e + ')=0,"Não acessou","Acessou"))',
-      '=IF(' + a + '="","",IFERROR(INDEX(FILTER(Registros!C:C,Registros!B:B=' + e + '),COUNTIF(Registros!B:B,' + e + ')),""))',
-      '=IF(' + a + '="","",IF(COUNTIF(Registros!B:B,' + e + ')=0,"",MAXIFS(Registros!A:A,Registros!B:B,' + e + ')))',
-      '=IF(' + a + '="","",COUNTIFS(Registros!B:B,' + e + ',Registros!D:D,"acesso"))'
+      '=IF(' + a + '="","",MAXIFS(Registros!A:A,Registros!B:B,' + a + '))',
+      '=IF(' + a + '="","",COUNTIFS(Registros!B:B,' + a + ',Registros!D:D,"acesso"))'
     ];
     LISTAS.forEach(l => {
-      const cond = 'Registros!B:B,' + e + ',Registros!E:E,"' + l[0] + '",Registros!F:F,"' + l[1] + '",Registros!D:D,"lista concluída"';
+      const cond = 'Registros!B:B,' + a + ',Registros!E:E,"' + l[0] + '",Registros!F:F,"' + l[1] + '",Registros!D:D,"lista concluída"';
       linha.push('=IF(' + a + '="","",IF(COUNTIFS(' + cond + ')=0,"—",MAXIFS(Registros!G:G,' + cond + ')))');
     });
+    linha.push('=IF(' + a + '="","",SUMIFS(Registros!N:N,Registros!B:B,' + a + '))');
     formulas.push(linha);
   }
-  tur.getRange(2, 3, LINHAS_TURMA, formulas[0].length).setFormulas(formulas);
-  tur.getRange(2, 5, LINHAS_TURMA, 1).setNumberFormat('dd/MM/yyyy HH:mm');
-  tur.getRange(2, COL_LISTA1, LINHAS_TURMA, LISTAS.length).setNumberFormat('0"/10"').setHorizontalAlignment('center');
-  tur.getRange(2, 4, LINHAS_TURMA, 1).setHorizontalAlignment('center');
+  tur.getRange(2, 2, LINHAS, formulas[0].length).setFormulas(formulas);
+  tur.getRange(2, 2, LINHAS, 1).setNumberFormat('dd/MM/yyyy HH:mm');
+  tur.getRange(2, COL_LISTA1, LINHAS, LISTAS.length).setNumberFormat('0"/10"');
+  tur.getRange(2, 2, LINHAS, formulas[0].length).setHorizontalAlignment('center');
 
-  // Cores: quem não acessou (vermelho), quem acessou (verde), turma diferente da aba (laranja)
-  const sit = tur.getRange(2, 3, LINHAS_TURMA, 1), inf = tur.getRange(2, 4, LINHAS_TURMA, 1);
-  tur.setConditionalFormatRules([
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Não acessou')
-      .setBackground('#FAE8E3').setFontColor('#B23A25').setRanges([sit]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Acessou')
-      .setBackground('#E2F2E8').setFontColor('#1B7A45').setRanges([sit]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND($D2<>"",TO_TEXT($D2)<>"' + t + '")')
-      .setBackground('#FDF0D5').setFontColor('#9A5B00').setBold(true).setRanges([inf]).build()
-  ]);
+  tur.setColumnWidth(1, 280); tur.setColumnWidths(2, formulas[0].length, 130);
+  tur.getRange('A1').setNote('Esta aba se preenche sozinha com quem entrou no app escolhendo a turma ' + t + '. Não precisa digitar nada.');
+}
 
-  tur.setColumnWidth(1, 260); tur.setColumnWidth(2, 180); tur.setColumnWidth(4, 130);
-  tur.getRange('A1').setNote('Cole aqui os e-mails dos alunos da turma ' + t + ' (um por linha). As outras colunas se calculam sozinhas.');
-  tur.getRange('D1').setNote('Turma que o aluno escolheu ao entrar no app. Em laranja: escolheu uma turma diferente desta aba (confira com ele).');
+// Chamada opcional: o professor cola de uma vez a coluna de e-mails de cada turma
+function criarChamada(ss, pos) {
+  const ch = ss.getSheetByName('Chamada') || ss.insertSheet('Chamada', pos);
+  const titulos = [];
+  TURMAS.forEach((t, i) => {
+    titulos.push('Turma ' + t + ': cole os e-mails (opcional)', 'Situação');
+    if (i < TURMAS.length - 1) titulos.push('');
+  });
+  cabecalho(ch, titulos);
+  const regras = [];
+  TURMAS.forEach((t, i) => {
+    const colE = 1 + 3 * i, colS = colE + 1, le = letra(colE);
+    const f = [];
+    for (let r = 2; r <= LINHAS + 1; r++) {
+      const a = le + r;
+      f.push(['=IF(' + a + '="","",IF(COUNTIF(Registros!B:B,LOWER(TRIM(' + a + ')))=0,"Não entrou","Entrou"))']);
+    }
+    ch.getRange(2, colS, LINHAS, 1).setFormulas(f).setHorizontalAlignment('center');
+    ch.setColumnWidth(colE, 260); ch.setColumnWidth(colS, 110);
+    if (i < TURMAS.length - 1) { ch.setColumnWidth(colS + 1, 24); ch.getRange(1, colS + 1).setBackground(BRANCO); }
+    const faixa = ch.getRange(2, colS, LINHAS, 1);
+    regras.push(
+      SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Não entrou')
+        .setBackground('#FAE8E3').setFontColor('#B23A25').setBold(true).setRanges([faixa]).build(),
+      SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Entrou')
+        .setBackground('#E2F2E8').setFontColor('#1B7A45').setRanges([faixa]).build());
+  });
+  ch.setConditionalFormatRules(regras);
+  ch.getRange('A1').setNote('Opcional. Se tiver a lista de e-mails da turma (de outra planilha, do Classroom etc.), selecione a coluna inteira lá, copie e cole aqui de uma vez. A coluna Situação mostra quem ainda não entrou no app.');
 }
 
 function criarResumo(ss) {
   const res = ss.getSheetByName('Resumo') || ss.insertSheet('Resumo', 0);
   res.clear();
-  const cab = ['Turma', 'Alunos na lista', 'Acessaram', 'Não acessaram'];
+  const cab = ['Turma', 'Entraram no app', 'Na chamada', 'Ainda não entraram'];
   LISTAS.forEach(l => cab.push(l[1] + ' · concluíram', l[1] + ' · média'));
-  res.getRange(1, 1, 1, cab.length).setValues([cab])
-    .setFontWeight('bold').setBackground('#1D4E89').setFontColor('#FFFFFF').setWrap(true);
-  res.setFrozenRows(1);
+  cabecalho(res, cab);
 
-  const linhas = TURMAS.map(t => {
+  const linhas = TURMAS.map((t, i) => {
     const ab = "'" + nomeAba(t) + "'!";
-    const l = [t, '=COUNTA(' + ab + 'A2:A)', '=COUNTIF(' + ab + 'C2:C,"Acessou")', '=COUNTIF(' + ab + 'C2:C,"Não acessou")'];
+    const le = letra(1 + 3 * i), ls = letra(2 + 3 * i);
+    const l = [t, '=COUNTIF(' + ab + 'A2:A,"*@*")',
+      '=COUNTIF(Chamada!' + le + '2:' + le + ',"*@*")',
+      '=IF(COUNTIF(Chamada!' + le + '2:' + le + ',"*@*")=0,"cole a chamada",COUNTIF(Chamada!' + ls + '2:' + ls + ',"Não entrou"))'];
     LISTAS.forEach((_, k) => {
       const c = letra(COL_LISTA1 + k);
       l.push('=COUNT(' + ab + c + '2:' + c + ')', '=IFERROR(AVERAGE(' + ab + c + '2:' + c + '),"—")');
     });
     return l;
   });
-  res.getRange(2, 1, linhas.length, cab.length).setValues(linhas);
+  res.getRange(2, 1, linhas.length, cab.length).setValues(linhas).setHorizontalAlignment('center');
   LISTAS.forEach((_, k) => res.getRange(2, 6 + 2 * k, linhas.length, 1).setNumberFormat('0.0"/10"'));
-  res.getRange(2, 1, linhas.length, cab.length).setHorizontalAlignment('center');
-
-  // Quem entrou no app mas não está em nenhuma aba de turma
-  const r0 = TURMAS.length + 4;
-  res.getRange(r0, 1, 1, 2).setValues([['E-mails que entraram no app e não estão em nenhuma aba de turma', 'Turma escolhida no app']])
-    .setFontWeight('bold').setBackground('#F2B705').setFontColor('#1A1A1A').setWrap(true);
-  const soma = TURMAS.map(t => "COUNTIF('" + nomeAba(t) + "'!A2:A,e)").join('+');
-  res.getRange(r0 + 1, 1).setFormula(
-    '=IFERROR(LET(u,UNIQUE(FILTER(Registros!B2:B,Registros!B2:B<>"")),' +
-    'f,FILTER(u,MAP(u,LAMBDA(e,' + soma + '))=0),' +
-    'HSTACK(f,MAP(f,LAMBDA(e,INDEX(FILTER(Registros!C2:C,Registros!B2:B=e),COUNTIF(Registros!B2:B,e)))))),"Nenhum")');
-  res.setColumnWidth(1, 300);
-  for (let c = 2; c <= cab.length; c++) res.setColumnWidth(c, 120);
+  res.setColumnWidths(1, cab.length, 130);
+  const r0 = TURMAS.length + 3;
+  res.getRange(r0, 1).setValue('Os nomes de quem entrou estão nas abas de cada turma. "Ainda não entraram" só aparece se você colar os e-mails na aba Chamada (opcional).')
+    .setFontStyle('italic').setFontColor('#5B6670');
 }
 
 function doPost(e) {
