@@ -189,6 +189,13 @@ body{font-size:16px}
 .fld input,.fld select{font:inherit;font-weight:400;font-size:17px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}
 .fld input:focus,.fld select:focus{outline:3px solid var(--lane);outline-offset:1px;border-color:var(--sign)}
 #loginErro{color:var(--bad);min-height:1em;margin:0}
+.fld-dica{font-weight:400;color:var(--muted);font-size:13.5px}
+.emailbox{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.emailbox:focus-within{outline:3px solid var(--lane);outline-offset:1px;border-color:var(--sign)}
+.fld .emailbox input{border:0;border-radius:0;outline:none}
+.fld .emailbox input:focus{outline:none}
+.emailbox .dom{font-size:14px;font-weight:700;color:var(--muted);background:var(--eq-bg);padding:9px 14px;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.note b{overflow-wrap:anywhere}
 
 .install{border-color:var(--sign)}
 .install p{margin:0}
@@ -921,8 +928,11 @@ function openLogin(){
     <form class="card intro" id="loginForm" novalidate>
       <p class="sect-label">Identificação</p>
       <p>Para usar as listas, informe o seu <b>e-mail do colégio</b> e a sua turma. Você só faz isso uma vez neste aparelho.</p>
-      <label class="fld"><span>E-mail do colégio</span>
-        <input id="loginEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="seunome@${CONFIG.dominio}" required></label>
+      <label class="fld"><span>E-mail do colégio <small class="fld-dica">(só a parte antes do @)</small></span>
+        <span class="emailbox">
+          <input id="loginEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="nome.sobrenome" required>
+          <span class="dom" aria-hidden="true">@${CONFIG.dominio.replace('.', '.<wbr>')}</span>
+        </span></label>
       <label class="fld"><span>Turma</span>
         <select id="loginTurma" required><option value="">Escolha</option>${CONFIG.turmas.map(t => `<option value="${t}">${t}</option>`).join('')}</select></label>
       <p class="small" id="loginErro" role="alert"></p>
@@ -931,8 +941,12 @@ function openLogin(){
     </form>`;
   $('loginForm').onsubmit = e => {
     e.preventDefault();
-    const email = $('loginEmail').value.trim().toLowerCase(), turma = $('loginTurma').value;
-    if (!emailValido(email)){ $('loginErro').textContent = `Use o seu e-mail do colégio, terminado em @${CONFIG.dominio}.`; $('loginEmail').focus(); return; }
+    let usuario = $('loginEmail').value.trim().toLowerCase().replace(/\s+/g, '');
+    const dom = '@' + CONFIG.dominio.toLowerCase().replace(/^@/, '');
+    if (usuario.endsWith(dom)) usuario = usuario.slice(0, -dom.length);   // se digitou o e-mail inteiro, aproveita
+    const email = usuario + dom, turma = $('loginTurma').value;
+    if (!usuario){ $('loginErro').textContent = 'Escreva a parte do seu e-mail antes do @.'; $('loginEmail').focus(); return; }
+    if (usuario.includes('@') || !emailValido(email)){ $('loginErro').textContent = `Escreva só a parte antes do @. O resto (${dom}) já está preenchido.`; $('loginEmail').focus(); return; }
     if (!turma){ $('loginErro').textContent = 'Escolha a sua turma.'; $('loginTurma').focus(); return; }
     setAluno({ email, turma }); registrarAcessoDoDia(); route();
   };
