@@ -1,6 +1,6 @@
 /* Funciona sem internet: guarda o app no celular.
    Ao publicar uma versão nova, mude o número em VERSAO. */
-const VERSAO = 'fisica9-v4';
+const VERSAO = 'fisica9-v5';
 const BASE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png', './icons/favicon.png'];
 
 self.addEventListener('install', e => {
