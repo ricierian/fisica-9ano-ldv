@@ -185,6 +185,10 @@ body{font-size:16px}
 .plot .pt-lab{font-size:14px;font-weight:600}
 .plot .pt-car{fill:#FFFFFF;font-size:12px;font-weight:600}
 .step-body .fig{margin:8px 0}
+.fld{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:15px}
+.fld input,.fld select{font:inherit;font-weight:400;font-size:17px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}
+.fld input:focus,.fld select:focus{outline:3px solid var(--lane);outline-offset:1px;border-color:var(--sign)}
+#loginErro{color:var(--bad);min-height:1em;margin:0}
 
 .install{border-color:var(--sign)}
 .install p{margin:0}
@@ -580,7 +584,54 @@ const SITE = {
   ]
 };
 
+/* ===== Configuração do registro (preencher ao publicar) ===== */
+const CONFIG = {
+  dominio: '',      // domínio do e-mail dos alunos, ex.: 'aluno.escola.com.br'. Vazio = não pede identificação
+  registro: '',     // URL do App da Web do Google Apps Script. Vazio = não envia resultados
+  turmas: ['91', '92', '93']
+};
 const $ = id => document.getElementById(id);
+const ID_KEY = 'fis9ldv-aluno', FILA_KEY = 'fis9ldv-fila', DIA_KEY = 'fis9ldv-ultimo-acesso';
+const getAluno = () => { try { const a = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); return a && a.email ? a : null; } catch(e){ return null; } };
+const setAluno = a => { try { if (a) localStorage.setItem(ID_KEY, JSON.stringify(a)); else localStorage.removeItem(ID_KEY); } catch(e){} };
+const precisaLogin = () => !!CONFIG.dominio && !getAluno();
+function emailValido(e){ const d = CONFIG.dominio.toLowerCase().replace(/^@/, ''); return new RegExp('^[a-z0-9._%+-]+@' + d.replace(/[.]/g, '\\.') + '$').test(e); }
+function enviar(ev){
+  const a = getAluno(); if (!CONFIG.registro || !a) return;
+  const item = Object.assign({ email: a.email, turma: a.turma, quando: new Date().toISOString(), dispositivo: /mobi|android|iphone|ipad/i.test(navigator.userAgent) ? 'celular/tablet' : 'computador' }, ev);
+  let fila = []; try { fila = JSON.parse(localStorage.getItem(FILA_KEY) || '[]'); } catch(e){}
+  fila.push(item); try { localStorage.setItem(FILA_KEY, JSON.stringify(fila.slice(-60))); } catch(e){}
+  enviarFila();
+}
+let enviando = false;
+async function enviarFila(){
+  if (!CONFIG.registro || enviando || navigator.onLine === false) return;
+  enviando = true;
+  try {
+    let fila = []; try { fila = JSON.parse(localStorage.getItem(FILA_KEY) || '[]'); } catch(e){}
+    while (fila.length){
+      await fetch(CONFIG.registro, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(fila[0]) });
+      fila.shift(); try { localStorage.setItem(FILA_KEY, JSON.stringify(fila)); } catch(e){}
+    }
+  } catch(e){} finally { enviando = false; }
+}
+window.addEventListener('online', enviarFila);
+function registrarAcessoDoDia(){
+  const hoje = new Date().toISOString().slice(0, 10);
+  let ult = null; try { ult = localStorage.getItem(DIA_KEY); } catch(e){}
+  if (ult !== hoje){ enviar({ evento: 'acesso' }); try { localStorage.setItem(DIA_KEY, hoje); } catch(e){} }
+}
+/* Tempo ativo: conta só com a lista aberta, a tela visível e o aluno interagindo (pausa após 3 min parado) */
+let tMarca = null, tInter = Date.now();
+['click','keydown','scroll','touchstart'].forEach(ev => window.addEventListener(ev, () => { if (LI && tMarca === null && document.visibilityState === 'visible') tMarca = Date.now(); tInter = Date.now(); }, { passive: true }));
+function contarTempo(){
+  if (!LI || !st || tMarca === null) return;
+  const fim = Math.min(Date.now(), tInter + 180000);
+  if (fim > tMarca) st.tempo = (st.tempo || 0) + (fim - tMarca) / 1000;
+  tMarca = Date.now() <= tInter + 180000 ? Date.now() : null;
+  store(LI.key, st);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden'){ contarTempo(); tMarca = null; } else if (LI){ tMarca = Date.now(); tInter = Date.now(); } });
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const toTop = () => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 const load = k => { try { const s = JSON.parse(localStorage.getItem(k) || 'null'); if (s && typeof s === 'object') return Object.assign({ answers:{}, hints:{}, cur:-1 }, s); } catch(e){} return { answers:{}, hints:{}, cur:-1 }; };
@@ -605,6 +656,7 @@ function crumbs(items){
 
 /* ===== Nível 1: início da turma ===== */
 function openHome(){
+  contarTempo(); tMarca = null;
   T = LI = null;
   plate(`Física · ${SITE.escola}`, SITE.turma, `${SITE.turmas} · ${SITE.prof}`);
   crumbs(null);
@@ -625,13 +677,15 @@ function openHome(){
       }).join('')}
     </div>
     <p class="note">Novos temas e listas entram aqui ao longo do trimestre.</p>
-    <section class="card install" id="installCard" hidden></section>`;
+    <section class="card install" id="installCard" hidden></section>
+    ${getAluno() ? `<p class="note">Entrou como <b>${getAluno().email}</b>${getAluno().turma ? ' · Turma ' + getAluno().turma : ''}. <button class="btn ghost" data-act="sair" style="padding:0">Não é você? Trocar</button></p>` : ''}`;
   showInstall();
   toTop();
 }
 
 /* ===== Nível 2: tema ===== */
 function openTema(ti){
+  contarTempo(); tMarca = null;
   T = SITE.temas[ti]; LI = null;
   plate(`Física · ${SITE.turma}`, T.nome, T.resumo);
   crumbs([{ label:'Início', nav:'home' }, { label:T.nome }]);
@@ -653,7 +707,8 @@ function openTema(ti){
 
 /* ===== Nível 3: lista interativa ===== */
 function openLista(li){
-  LI = T.listas[li]; st = load(LI.key); st.cur = -1;
+  contarTempo();
+  LI = T.listas[li]; st = load(LI.key); st.cur = -1; tMarca = Date.now(); tInter = Date.now();
   plate(`Física · ${SITE.turma} · ${T.nome}`, `Lista ${LI.num}`, LI.titulo);
   crumbs([{ label:'Início', nav:'home' }, { label:T.nome, nav:'tema' }, { label:`Lista ${LI.num}` }]);
   $('view').innerHTML = `
@@ -693,6 +748,17 @@ function levelSummary(){
   return `<div class="row" style="gap:6px">${Object.keys(c).map(n => `<span class="lvl lvl-${lvKey(n)}">${c[n]} ${n === 'básico' ? (c[n]>1?'básicas':'básica') : n === 'intermediário' ? (c[n]>1?'intermediárias':'intermediária') : (c[n]>1?'avançadas':'avançada')}</span>`).join('')}</div>`;
 }
 const save = () => store(LI.key, st);
+function resumoLista(){
+  const porNivel = n => { const idx = LI.Q.map((q,i) => i).filter(i => LI.Q[i].nivel === n); return idx.length ? idx.filter(i => status(i) === 'ok').length + '/' + idx.length : ''; };
+  return {
+    evento: 'lista concluída', tema: T.nome, lista: 'Lista ' + LI.num,
+    acertos: correctCount(), total: LI.Q.length,
+    basico: porNivel('básico'), intermediario: porNivel('intermediário'), avancado: porNivel('avançado'),
+    erradas: LI.Q.map((q,i) => i).filter(i => status(i) !== 'ok').map(i => i + 1).join(', '),
+    dicas: Object.keys(st.hints || {}).filter(k => st.hints[k]).length,
+    tempoMin: Math.round((st.tempo || 0) / 6) / 10
+  };
+}
 function status(i){ const a = st.answers[i]; if (a === undefined) return 'none'; return a === LI.Q[i].ans ? 'ok' : 'bad'; }
 function correctCount(){ return LI.Q.reduce((n,_,i)=> n + (status(i)==='ok'?1:0), 0); }
 function answeredCount(){ return LI.Q.reduce((n,_,i)=> n + (status(i)!=='none'?1:0), 0); }
@@ -800,6 +866,7 @@ function renderQuestion(i){
 function answer(i, k){
   if (st.answers[i] !== undefined) return;
   st.answers[i] = k; save();
+  if (answeredCount() === LI.Q.length && !st.enviado){ contarTempo(); st.enviado = true; save(); enviar(resumoLista()); }
   renderRoad(); renderQuestion(i);
   const fb = $('qa').querySelector('.feedback');
   if (fb) fb.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
@@ -830,7 +897,7 @@ function renderEnd(){
   const r = $('resetBtn'); let armed = false;
   r.onclick = () => {
     if (!armed){ armed = true; r.textContent = 'Confirmar: apagar minhas respostas'; $('resetNote').textContent = 'Toque de novo para confirmar.'; return; }
-    st = { answers:{}, hints:{}, cur:-1 }; save(); goQ(-1);
+    st = { answers:{}, hints:{}, cur:-1, tempo:0 }; save(); goQ(-1);
   };
 }
 
@@ -845,7 +912,34 @@ function goQ(i){
 
 /* ===== Navegação com endereço próprio (#/tema/lista) e botão Voltar do celular ===== */
 function go(h){ if (location.hash === h) route(); else location.hash = h; }
+function openLogin(){
+  contarTempo(); tMarca = null; T = LI = null;
+  plate(`Física · ${SITE.escola}`, SITE.turma, `${SITE.turmas} · ${SITE.prof}`);
+  crumbs(null);
+  $('view').innerHTML = `
+    <form class="card intro" id="loginForm" novalidate>
+      <p class="sect-label">Identificação</p>
+      <p>Para usar as listas, informe o seu <b>e-mail do colégio</b> e a sua turma. Você só faz isso uma vez neste aparelho.</p>
+      <label class="fld"><span>E-mail do colégio</span>
+        <input id="loginEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="seunome@${CONFIG.dominio}" required></label>
+      <label class="fld"><span>Turma</span>
+        <select id="loginTurma" required><option value="">Escolha</option>${CONFIG.turmas.map(t => `<option value="${t}">${t}</option>`).join('')}</select></label>
+      <p class="small" id="loginErro" role="alert"></p>
+      <div class="row"><button class="btn primary" type="submit">Entrar</button></div>
+      <p class="note">O professor recebe o seu e-mail, a turma, a data de acesso e os resultados das listas (acertos, tempo e dicas usadas), só para acompanhar os estudos da turma.</p>
+    </form>`;
+  $('loginForm').onsubmit = e => {
+    e.preventDefault();
+    const email = $('loginEmail').value.trim().toLowerCase(), turma = $('loginTurma').value;
+    if (!emailValido(email)){ $('loginErro').textContent = `Use o seu e-mail do colégio, terminado em @${CONFIG.dominio}.`; $('loginEmail').focus(); return; }
+    if (!turma){ $('loginErro').textContent = 'Escolha a sua turma.'; $('loginTurma').focus(); return; }
+    setAluno({ email, turma }); registrarAcessoDoDia(); route();
+  };
+  toTop();
+}
 function route(){
+  if (precisaLogin()){ openLogin(); return; }
+  registrarAcessoDoDia(); enviarFila();
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const ti = SITE.temas.findIndex(t => t.id === p[0]);
   if (ti < 0){ openHome(); return; }
@@ -856,6 +950,7 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 document.addEventListener('click', e => {
+  const act = e.target.closest('[data-act="sair"]'); if (act){ setAluno(null); try { localStorage.removeItem(DIA_KEY); } catch(err){} go('#/'); route(); return; }
   const nav = e.target.closest('[data-nav]');
   if (nav){ go(nav.dataset.nav === 'tema' && T ? '#/' + T.id : '#/'); return; }
   const t = e.target.closest('[data-tema]'); if (t){ go('#/' + SITE.temas[+t.dataset.tema].id); return; }
