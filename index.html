@@ -210,7 +210,48 @@ const TOOLS = [
 ];
 const Q = [
 {
-src:'FCC',
+src:'Cesgranrio', nivel:'básico',
+text:'Uma pessoa, correndo, percorre 4,0 km com velocidade escalar média de 12 km/h. O tempo do percurso é de:',
+opts:['3,0 min','8,0 min','20 min','30 min','33 min'], ans:2,
+hint:'Isole o tempo na fórmula: Δt = Δs ÷ v. Como a velocidade está em km/h, o resultado sai em horas.',
+steps:[
+['Dados', `<ul><li>Distância: Δs = 4,0 km</li><li>Velocidade: v = 12 km/h</li><li>Pede-se: Δt (as alternativas estão em minutos)</li></ul>`],
+['Isolar o tempo', `<div class="eq">v = ${f('Δs','Δt')} &nbsp;⇒&nbsp; Δt = ${f('Δs','v')} = ${f('4,0 km','12 km/h')} = ${f('1','3')} h</div>`],
+['Passar de horas para minutos', `<div class="eq">${f('1','3')} h = ${f('1','3')} × 60 min = <span class="hl">20 min</span></div>`],
+],
+alt:'A 12 km/h, a pessoa anda 12 km em 60 min, ou seja, 1 km a cada 5 min. Para 4 km: 4 × 5 = 20 min.',
+warn:'⅓ h ≈ 0,33 h, mas 0,33 h <b>não</b> é 33 min! Uma hora tem 60 minutos, não 100. Quem marca e) caiu nessa armadilha.'
+},
+{
+src:'Unicamp', nivel:'básico',
+text:'Drones são veículos voadores não tripulados, controlados remotamente e guiados por GPS. Uma de suas potenciais aplicações é reduzir o tempo da prestação de primeiros socorros, levando pequenos equipamentos e instruções ao local do socorro, para que qualquer pessoa administre os primeiros cuidados até a chegada de uma ambulância. Considere um caso em que o drone ambulância se deslocou 9 km em 5 minutos. Nesse caso, o módulo de sua velocidade média é de aproximadamente:',
+opts:['1,4 m/s','30 m/s','45 m/s','140 m/s'], ans:1,
+hint:'As alternativas estão em m/s. Passe a distância para metros e o tempo para segundos.',
+steps:[
+['Dados', `<ul><li>Distância: Δs = 9 km</li><li>Tempo: Δt = 5 min</li><li>Pede-se: v<sub>m</sub> em <b>m/s</b></li></ul>`],
+['Converter para o SI', `<div class="eq">9 km = 9 × 1 000 = 9 000 m</div>
+<div class="eq">5 min = 5 × 60 = 300 s</div>`],
+['Aplicar a fórmula', `<div class="eq">v<sub>m</sub> = ${f('9 000 m','300 s')} = <span class="hl">30 m/s</span></div>`],
+],
+alt:'Confira se o resultado faz sentido: 30 m/s × 3,6 = 108 km/h. É uma velocidade razoável para um drone (mais ou menos a de um carro na estrada).',
+warn:'9 ÷ 5 = 1,8 dá a velocidade em km por minuto, que não é nenhuma das unidades das alternativas. Sempre confira as unidades antes de dividir.'
+},
+{
+src:'Fuvest', nivel:'básico',
+text:'Após chover na cidade de São Paulo, as águas da chuva descerão o rio Tietê até o rio Paraná, percorrendo cerca de 1 000 km. Sendo de 4 km/h a velocidade média das águas, o percurso mencionado será cumprido pelas águas da chuva em aproximadamente:',
+opts:['30 dias','10 dias','25 dias','2 dias','4 dias'], ans:1,
+hint:'Calcule o tempo em horas. Depois lembre que um dia tem 24 horas.',
+steps:[
+['Dados', `<ul><li>Distância: Δs = 1 000 km</li><li>Velocidade média: v = 4 km/h</li><li>Pede-se: tempo em <b>dias</b></li></ul>`],
+['Calcular o tempo em horas', `<div class="eq">Δt = ${f('Δs','v')} = ${f('1 000 km','4 km/h')} = 250 h</div>`],
+['Passar de horas para dias', `<div class="eq">${f('250 h','24 h/dia')} ≈ 10,4 dias ≈ <span class="hl">10 dias</span></div>
+<p>A questão pede “aproximadamente”, então 10 dias é a alternativa mais próxima.</p>`],
+],
+alt:'Em um dia as águas andam 4 km/h × 24 h = 96 km, quase 100 km. Para 1 000 km, são cerca de 10 dias.',
+warn:'Não pare no 250! O resultado da fórmula sai em horas, e as alternativas estão em dias.'
+},
+{
+src:'FCC', nivel:'intermediário',
 text:'Qual é a velocidade escalar média, em km/h, de uma pessoa que percorre, a pé, 1 200 m em 20 min?',
 opts:['4,8','3,6','2,7','2,1','1,2'], ans:1,
 hint:'A resposta é pedida em km/h. Passe a distância para quilômetros e o tempo para horas antes de dividir.',
@@ -226,20 +267,7 @@ alt:`Repare que 20 min = 20 × 60 = 1 200 s. Então v = ${f('1 200 m','1 200 s')
 warn:'Não divida 1 200 por 20 direto: isso dá 60 metros por minuto, que não é km/h. Converta as unidades primeiro.'
 },
 {
-src:'Cesgranrio',
-text:'Uma pessoa, correndo, percorre 4,0 km com velocidade escalar média de 12 km/h. O tempo do percurso é de:',
-opts:['3,0 min','8,0 min','20 min','30 min','33 min'], ans:2,
-hint:'Isole o tempo na fórmula: Δt = Δs ÷ v. Como a velocidade está em km/h, o resultado sai em horas.',
-steps:[
-['Dados', `<ul><li>Distância: Δs = 4,0 km</li><li>Velocidade: v = 12 km/h</li><li>Pede-se: Δt (as alternativas estão em minutos)</li></ul>`],
-['Isolar o tempo', `<div class="eq">v = ${f('Δs','Δt')} &nbsp;⇒&nbsp; Δt = ${f('Δs','v')} = ${f('4,0 km','12 km/h')} = ${f('1','3')} h</div>`],
-['Passar de horas para minutos', `<div class="eq">${f('1','3')} h = ${f('1','3')} × 60 min = <span class="hl">20 min</span></div>`],
-],
-alt:'A 12 km/h, a pessoa anda 12 km em 60 min, ou seja, 1 km a cada 5 min. Para 4 km: 4 × 5 = 20 min.',
-warn:'⅓ h ≈ 0,33 h, mas 0,33 h <b>não</b> é 33 min! Uma hora tem 60 minutos, não 100. Quem marca e) caiu nessa armadilha.'
-},
-{
-src:'Unitau',
+src:'Unitau', nivel:'intermediário',
 text:'Um carro mantém uma velocidade escalar constante de 72,0 km/h. Em uma hora e dez minutos ele percorre, em quilômetros, a distância de:',
 opts:['79,2','80,0','82,4','84,0','90,0'], ans:3,
 hint:'Cuidado: 1 h 10 min não é 1,10 h. Que fração da hora são 10 minutos?',
@@ -254,21 +282,7 @@ alt:`Pela fórmula: Δt = 1 + ${f('1','6')} = ${f('7','6')} h. Então Δs = v ·
 warn:'Se você fez 72 × 1,10 = 79,2 (alternativa a), tratou 10 minutos como 0,10 h. Mas 10 min = 0,1666… h.'
 },
 {
-src:'Unicamp',
-text:'Drones são veículos voadores não tripulados, controlados remotamente e guiados por GPS. Uma de suas potenciais aplicações é reduzir o tempo da prestação de primeiros socorros, levando pequenos equipamentos e instruções ao local do socorro, para que qualquer pessoa administre os primeiros cuidados até a chegada de uma ambulância. Considere um caso em que o drone ambulância se deslocou 9 km em 5 minutos. Nesse caso, o módulo de sua velocidade média é de aproximadamente:',
-opts:['1,4 m/s','30 m/s','45 m/s','140 m/s'], ans:1,
-hint:'As alternativas estão em m/s. Passe a distância para metros e o tempo para segundos.',
-steps:[
-['Dados', `<ul><li>Distância: Δs = 9 km</li><li>Tempo: Δt = 5 min</li><li>Pede-se: v<sub>m</sub> em <b>m/s</b></li></ul>`],
-['Converter para o SI', `<div class="eq">9 km = 9 × 1 000 = 9 000 m</div>
-<div class="eq">5 min = 5 × 60 = 300 s</div>`],
-['Aplicar a fórmula', `<div class="eq">v<sub>m</sub> = ${f('9 000 m','300 s')} = <span class="hl">30 m/s</span></div>`],
-],
-alt:'Confira se o resultado faz sentido: 30 m/s × 3,6 = 108 km/h. É uma velocidade razoável para um drone (mais ou menos a de um carro na estrada).',
-warn:'9 ÷ 5 = 1,8 dá a velocidade em km por minuto, que não é nenhuma das unidades das alternativas. Sempre confira as unidades antes de dividir.'
-},
-{
-src:'FGV',
+src:'FGV', nivel:'intermediário',
 text:'Numa corrida de Fórmula 1, a volta mais rápida foi feita em 1 min e 20 s a uma velocidade média de 180 km/h. Pode-se afirmar que o comprimento da pista, em metros, é de:',
 opts:['180','4 000','1 800','14 400','2 160'], ans:1,
 hint:'A resposta é em metros. Converta 180 km/h para m/s e escreva o tempo todo em segundos.',
@@ -282,21 +296,7 @@ alt:`180 km/h significa 180 km em 60 min, ou seja, 3 km por minuto. Como 80 s = 
 warn:'180 × 80 = 14 400 (alternativa d) mistura km/h com segundos. Velocidade e tempo precisam estar em unidades que combinam.'
 },
 {
-src:'Fuvest',
-text:'Após chover na cidade de São Paulo, as águas da chuva descerão o rio Tietê até o rio Paraná, percorrendo cerca de 1 000 km. Sendo de 4 km/h a velocidade média das águas, o percurso mencionado será cumprido pelas águas da chuva em aproximadamente:',
-opts:['30 dias','10 dias','25 dias','2 dias','4 dias'], ans:1,
-hint:'Calcule o tempo em horas. Depois lembre que um dia tem 24 horas.',
-steps:[
-['Dados', `<ul><li>Distância: Δs = 1 000 km</li><li>Velocidade média: v = 4 km/h</li><li>Pede-se: tempo em <b>dias</b></li></ul>`],
-['Calcular o tempo em horas', `<div class="eq">Δt = ${f('Δs','v')} = ${f('1 000 km','4 km/h')} = 250 h</div>`],
-['Passar de horas para dias', `<div class="eq">${f('250 h','24 h/dia')} ≈ 10,4 dias ≈ <span class="hl">10 dias</span></div>
-<p>A questão pede “aproximadamente”, então 10 dias é a alternativa mais próxima.</p>`],
-],
-alt:'Em um dia as águas andam 4 km/h × 24 h = 96 km, quase 100 km. Para 1 000 km, são cerca de 10 dias.',
-warn:'Não pare no 250! O resultado da fórmula sai em horas, e as alternativas estão em dias.'
-},
-{
-src:'UFPE',
+src:'UFPE', nivel:'intermediário',
 text:'Um automóvel se desloca numa estrada retilínea sempre no mesmo sentido. Inicialmente, ele percorre um trecho de comprimento 400 km em 8 horas. O motorista para durante uma hora e, em seguida, percorre mais 200 km em 6 horas. A velocidade média em todo o percurso, em km/h, é igual a:',
 opts:['100','80','60','50','40'], ans:4,
 hint:'Velocidade média = distância total ÷ tempo total. O relógio continua correndo durante a parada.',
@@ -310,7 +310,7 @@ alt:'Pense na viagem inteira como um único bloco: do momento em que o carro sai
 warn:'Velocidade média não é a média das velocidades dos trechos. O trecho 1 teve 50 km/h e o trecho 2 cerca de 33 km/h, mas a resposta não é a média desses números. Esquecer a parada também leva a erro: 600 ÷ 14 ≈ 42,9 km/h.'
 },
 {
-src:'PUC-MG',
+src:'PUC-MG', nivel:'avançado',
 text:'Um homem, caminhando na praia, deseja calcular sua velocidade. Para isso, ele conta o número de passadas que dá em um minuto, contando uma unidade a cada vez que o pé direito toca o solo, e conclui que são 50 passadas por minuto. A seguir, ele mede a distância entre duas posições sucessivas do seu pé direito e encontra o equivalente a seis pés. Sabendo que três pés correspondem a um metro, sua velocidade, suposta constante, é:',
 opts:['3 km/h','4,5 km/h','6 km/h','9 km/h','10 km/h'], ans:2,
 hint:'Descubra quantos metros tem uma passada. Depois, quantos metros ele anda em 1 minuto e em 1 hora.',
@@ -326,7 +326,7 @@ alt:`Em m/s: 100 m por minuto = ${f('100 m','60 s')} ≈ 1,67 m/s. Multiplicando
 warn:'O enunciado mede a passada em “pés”. Troque para metros antes de fazer qualquer conta, senão a velocidade sai numa unidade estranha.'
 },
 {
-src:'UFRGS',
+src:'UFRGS', nivel:'avançado',
 text:'Em grandes aeroportos e shoppings, existem esteiras móveis horizontais para facilitar o deslocamento de pessoas. Considere uma esteira com 48 m de comprimento e velocidade de 1,0 m/s. Uma pessoa ingressa na esteira e segue caminhando sobre ela com velocidade constante no mesmo sentido de movimento da esteira. A pessoa atinge a outra extremidade 30 s após ter ingressado na esteira. Com que velocidade, em m/s, a pessoa caminha sobre a esteira?',
 opts:['2,6','1,6','1,0','0,8','0,6'], ans:4,
 hint:'Primeiro calcule a velocidade da pessoa vista por alguém parado no chão. Uma parte dessa velocidade vem da esteira.',
@@ -342,7 +342,7 @@ alt:'Tire a prova: em 30 s, a esteira leva a pessoa 1,0 × 30 = 30 m, e as próp
 warn:'1,6 m/s (alternativa b) é a velocidade em relação ao chão, mas a pergunta é sobre a velocidade da pessoa caminhando sobre a esteira.'
 },
 {
-src:'Fuvest',
+src:'Fuvest', nivel:'avançado',
 text:'Um automóvel que se desloca com uma velocidade escalar constante de 72 km/h ultrapassa outro que se desloca com uma velocidade escalar constante de 54 km/h numa mesma estrada reta. O primeiro encontra-se 200 m atrás do segundo no instante t = 0. O primeiro estará ao lado do segundo no instante:',
 opts:['t = 10 s','t = 20 s','t = 30 s','t = 40 s','t = 50 s'], ans:3,
 hint:'Passe as velocidades para m/s. A cada segundo, quantos metros o carro de trás “tira” da distância de 200 m?',
@@ -565,9 +565,9 @@ const SITE = {
       id: 'cinematica', ico: 'Δs', nome: 'Cinemática',
       resumo: 'Como descrever movimentos: posição, deslocamento, tempo e velocidade.',
       listas: [
-        { id: 'mu-vm', key: 'cinematica-9ano-mu-v1', num: 1,
+        { id: 'mu-vm', key: 'cinematica-9ano-mu-v2', num: 1,
           titulo: 'Movimento uniforme e velocidade média',
-          resumo: '10 questões de vestibular, com dica e resolução passo a passo.',
+          resumo: '10 questões de vestibular do básico ao avançado, com dica e resolução passo a passo.',
           intro: 'Esse conteúdo é base para o próximo teste.',
           tools: TOOLS, Q: Q },
         { id: 'mu-funcoes', key: 'cinematica-9ano-mu-funcoes-v1', num: 2,
