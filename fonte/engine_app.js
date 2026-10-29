@@ -18,7 +18,17 @@ const SITE = {
           titulo: 'Funções horárias, gráficos e encontro',
           resumo: '10 questões do básico ao avançado: funções horárias, gráficos s×t e v×t e problemas de encontro.',
           intro: 'As questões vão do nível básico ao avançado, e as duas últimas são problemas de encontro.',
-          tools: TOOLS2, Q: Q2 }
+          tools: TOOLS2, Q: Q2 },
+        { id: 'muv-aceleracao', key: 'cinematica-9ano-muv-aceleracao-v1', num: 3,
+          titulo: 'MUV: aceleração e velocidade',
+          resumo: '10 questões do básico ao avançado: aceleração média, função horária da velocidade e movimento acelerado ou retardado.',
+          intro: 'Primeira parte do capítulo de MUV. As questões vão do nível básico ao avançado.',
+          tools: TOOLS3, Q: Q3 },
+        { id: 'muv-torricelli', key: 'cinematica-9ano-muv-torricelli-v1', num: 4,
+          titulo: 'MUV: posição e Torricelli',
+          resumo: '10 questões do básico ao avançado: função horária do espaço, equação de Torricelli, frenagem e tempo de reação.',
+          intro: 'Segunda parte do capítulo de MUV. Faça antes a Lista 3. As últimas questões trazem situações de trânsito.',
+          tools: TOOLS4, Q: Q4 }
       ]
     }
   ]

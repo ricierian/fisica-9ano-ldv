@@ -23,7 +23,9 @@ const DOMINIO = 'COLOQUE_AQUI_O_DOMINIO'; // ex.: aluno.escola.com.br (sem o @)
 const TURMAS = ['91', '92', '93'];
 const LISTAS = [
   ['Cinemática', 'Lista 1'],
-  ['Cinemática', 'Lista 2']
+  ['Cinemática', 'Lista 2'],
+  ['Cinemática', 'Lista 3'],
+  ['Cinemática', 'Lista 4']
 ];
 const LINHAS = 80; // linhas preparadas por turma
 
