@@ -9,7 +9,7 @@ const SITE = {
       id: 'cinematica', ico: 'Δs', nome: 'Cinemática',
       resumo: 'Como descrever movimentos: posição, deslocamento, tempo e velocidade.',
       listas: [
-        { id: 'mu-vm', key: 'cinematica-9ano-mu-v2', num: 1,
+        { id: 'mu-vm', key: 'cinematica-9ano-mu-v3', num: 1,
           titulo: 'Movimento uniforme e velocidade média',
           resumo: '10 questões de vestibular do básico ao avançado, com dica e resolução passo a passo.',
           intro: 'Esse conteúdo é base para o próximo teste.',
