@@ -1,6 +1,6 @@
 # Monta o index.html do app a partir dos arquivos desta pasta.
 # Uso (na raiz do repositório):  python3 fonte/montar.py
-# Ordem do script: data.js (helpers + Lista 1) → lista2.js, lista3.js... (em ordem numérica) → engine_app.js (SITE, CONFIG e motor).
+# Ordem do script: data.js (helpers + Lista 1) → lista2.js, lista3.js... (em ordem numérica) → engine_app.js (SITE, CONFIG e motor) → calc.js (calculadora).
 import glob, os, re
 B=os.path.dirname(os.path.abspath(__file__))+'/'
 head=open(B+'head.html',encoding='utf-8').read().replace('<title>Lista de Cinemática 9º Ano</title>','''<title>Física 9º Ano LDV</title>
@@ -22,6 +22,7 @@ data=open(B+'data.js',encoding='utf-8').read()
 extras=sorted(glob.glob(B+'lista*.js'), key=lambda p:int(re.findall(r'\d+',os.path.basename(p))[0]))
 l2='\n'.join(open(p,encoding='utf-8').read() for p in extras)
 eng=open(B+'engine_app.js',encoding='utf-8').read()
+if os.path.exists(B+'calc.js'): eng += '\n' + open(B+'calc.js',encoding='utf-8').read()   # calculadora flutuante (depois do motor)
 body='''<div class="wrap">
 <header class="plate"><div class="plate-inner"><div class="eyebrow" id="eyebrow"></div><h1 id="ptitle"></h1><p id="psub"></p></div></header>
 <nav class="crumbs" id="crumbs" aria-label="Você está em" hidden></nav>

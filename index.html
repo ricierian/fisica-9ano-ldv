@@ -197,6 +197,32 @@ body{font-size:16px}
 .emailbox .dom{font-size:14px;font-weight:700;color:var(--muted);background:var(--eq-bg);padding:9px 14px;border-top:1px solid var(--line);overflow-wrap:anywhere}
 .note b{overflow-wrap:anywhere}
 
+/* ===== Mini calculadora flutuante ===== */
+body.com-calc .wrap{padding-bottom:96px}
+.calc-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:60;width:54px;height:54px;border-radius:50%;border:2px solid var(--sign-ink);background:var(--sign);color:var(--sign-ink);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:pointer;padding:0}
+.calc-fab svg{width:26px;height:26px}
+.calc-fab.on{background:var(--lane);color:#141B22;border-color:var(--lane)}
+.calc-fab:focus-visible{outline:3px solid var(--lane);outline-offset:3px}
+.calc{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 66px);z-index:60;width:min(272px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:16px;box-shadow:0 14px 40px rgba(0,0,0,.30);padding:10px;font-family:var(--f-body)}
+.calc-top{display:flex;align-items:center;justify-content:space-between;padding:0 2px 6px}
+.calc-tit{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.calc-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;width:32px;height:32px;border-radius:8px;cursor:pointer}
+.calc-x:hover{background:var(--eq-bg);color:var(--ink)}
+.calc-tela{background:var(--eq-bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:right;margin-bottom:8px;min-height:62px;display:flex;flex-direction:column;justify-content:flex-end}
+.calc-exp{font-family:var(--f-mono);font-size:19px;font-weight:600;word-break:break-all;line-height:1.3}
+.calc-exp.calc-final{font-size:24px;color:var(--sign)}
+.calc-res{font-family:var(--f-mono);font-size:14px;color:var(--muted);min-height:18px}
+.calc-teclas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.calc-teclas button{height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-family:var(--f-mono);font-size:19px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.calc-teclas button:active{transform:scale(.96)}
+.calc-teclas .k-op{background:var(--eq-bg);color:var(--sign)}
+.calc-teclas .k-fn{background:var(--eq-bg);color:var(--muted);font-size:17px}
+.calc-teclas .k-eq{grid-row:span 2;height:auto;background:var(--sign);color:var(--sign-ink);border-color:var(--sign)}
+.calc-teclas .k-zero{grid-column:span 2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .calc-exp.calc-final{color:var(--lane)}}
+@media print{.calc,.calc-fab{display:none!important}}
+:root[data-theme="dark"] .calc-exp.calc-final{color:var(--lane)}
+
 .install{border-color:var(--sign)}
 .install p{margin:0}
 @media (display-mode: standalone){.wrap{padding-top:max(20px,env(safe-area-inset-top,0px))}}
@@ -1360,6 +1386,160 @@ function showInstall(){
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 route();
+
+/* ===== Mini calculadora (quatro operações), flutuante, só nas telas das listas ===== */
+(function(){
+  const fab = document.createElement('button');
+  fab.className = 'calc-fab'; fab.type = 'button'; fab.hidden = true;
+  fab.setAttribute('aria-label', 'Abrir a calculadora'); fab.setAttribute('aria-expanded', 'false');
+  fab.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="2.5" width="15" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="7.5" y="5.5" width="9" height="4" rx="1" fill="currentColor"/><g fill="currentColor"><circle cx="8.8" cy="13.2" r="1.15"/><circle cx="12" cy="13.2" r="1.15"/><circle cx="15.2" cy="13.2" r="1.15"/><circle cx="8.8" cy="17.2" r="1.15"/><circle cx="12" cy="17.2" r="1.15"/><circle cx="15.2" cy="17.2" r="1.15"/></g></svg>`;
+
+  const pn = document.createElement('div');
+  pn.className = 'calc'; pn.hidden = true;
+  pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Calculadora');
+  const K = [['C','limpar','fn'],['⌫','apagar','fn'],['÷','dividir','op'],['×','multiplicar','op'],
+             ['7'],['8'],['9'],['−','subtrair','op'],
+             ['4'],['5'],['6'],['+','somar','op'],
+             ['1'],['2'],['3'],['=','igual','eq'],
+             ['0',null,'zero'],[',','vírgula']];
+  pn.innerHTML = `<div class="calc-top"><span class="calc-tit">Calculadora</span><button type="button" class="calc-x" aria-label="Fechar a calculadora">×</button></div>
+    <div class="calc-tela"><div class="calc-exp" aria-live="polite"></div><div class="calc-res"></div></div>
+    <div class="calc-teclas">${K.map(([t, nome, c]) => `<button type="button" data-k="${t}"${c ? ` class="k-${c}"` : ''}${nome ? ` aria-label="${nome}"` : ''}>${t}</button>`).join('')}</div>`;
+  document.body.append(pn, fab);
+  const $exp = pn.querySelector('.calc-exp'), $res = pn.querySelector('.calc-res');
+
+  /* Expressão como lista de fichas: números (texto com ponto decimal) e operadores */
+  let tk = [], acabou = false;
+  const OPS = '+−×÷', ehOp = t => OPS.includes(t) && t.length === 1;
+
+  function fmt(s){
+    if (s === '-' ) return '−';
+    const neg = s.startsWith('-'), b = neg ? s.slice(1) : s;
+    let [i, d] = b.split('.');
+    const m = i.match(/e([+-]?\d+)$/);
+    if (m) return (neg ? '−' : '') + num(Number(b));
+    i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return (neg ? '−' : '') + i + (d !== undefined ? ',' + d : '');
+  }
+  function num(v){
+    if (!isFinite(v)) return 'Erro';
+    if (v === 0) return '0';
+    const a = Math.abs(v);
+    if (a >= 1e12 || a < 1e-6){
+      const [m, e] = v.toExponential(6).split('e');
+      return m.replace(/\.?0+$/, '').replace('.', ',').replace('-', '−') + ' × 10' + sup(+e);
+    }
+    const r = +v.toPrecision(10);
+    const [i, d] = String(Math.abs(r)).split('.');
+    return (r < 0 ? '−' : '') + i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (d ? ',' + d : '');
+  }
+  const sup = n => String(n).split('').map(c => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(c)] || (c === '-' ? '⁻' : '')).join('');
+
+  function calcular(){
+    const t = tk.slice();
+    if (!t.length) return null;
+    while (t.length && (ehOp(t[t.length - 1]) || t[t.length - 1] === '-')) t.pop();
+    if (!t.length) return null;
+    const vals = [], ops = [];
+    t.forEach(x => ehOp(x) ? ops.push(x) : vals.push(Number(x)));
+    if (vals.some(v => isNaN(v))) return null;
+    // primeiro × e ÷, depois + e −
+    const v2 = [vals[0]], o2 = [];
+    ops.forEach((o, k) => {
+      const b = vals[k + 1];
+      if (o === '×') v2[v2.length - 1] *= b;
+      else if (o === '÷') v2[v2.length - 1] /= b;
+      else { o2.push(o); v2.push(b); }
+    });
+    return o2.reduce((acc, o, k) => o === '+' ? acc + v2[k + 1] : acc - v2[k + 1], v2[0]);
+  }
+
+  function mostrar(){
+    $exp.textContent = acabou && tk.length === 1 ? num(Number(tk[0])) : tk.length ? tk.map(x => ehOp(x) ? ` ${x} ` : fmt(x)).join('') : '0';
+    const r = calcular();
+    $res.textContent = acabou ? '' : (r === null || tk.length < 2 ? '' : '= ' + num(r));
+    $exp.classList.toggle('calc-final', acabou);
+  }
+
+  function tecla(k){
+    const ult = tk[tk.length - 1];
+    if (k === 'C'){ tk = []; acabou = false; }
+    else if (k === '⌫'){
+      if (acabou){ tk = []; acabou = false; }
+      else if (ult !== undefined){
+        if (ehOp(ult) || ult.length === 1 || /e/.test(ult)) tk.pop();
+        else tk[tk.length - 1] = ult.slice(0, -1);
+        if (tk[tk.length - 1] === '') tk.pop();
+      }
+    }
+    else if (k === '='){
+      const r = calcular();
+      if (r === null) return;
+      tk = isFinite(r) ? [String(+r.toPrecision(12))] : []; acabou = true;
+      if (!isFinite(r)){ $exp.textContent = 'Erro'; $res.textContent = 'divisão por zero'; return; }
+    }
+    else if (ehOp(k)){
+      acabou = false;
+      if (ult === undefined){ if (k === '−') tk.push('-'); }
+      else if (ult === '-'){ /* só o sinal: ignora */ }
+      else if (ehOp(ult)){
+        if (k === '−' && (ult === '×' || ult === '÷')) tk.push('-');
+        else tk[tk.length - 1] = k;
+      }
+      else tk.push(k);
+    }
+    else { // dígito ou vírgula
+      if (acabou){ tk = []; acabou = false; }
+      const u = tk[tk.length - 1];
+      const ehNum = u !== undefined && !ehOp(u);
+      if (k === ','){
+        if (!ehNum) tk.push('0.');
+        else if (u === '-') tk[tk.length - 1] = '-0.';
+        else if (!u.includes('.') && !/e/.test(u)) tk[tk.length - 1] = u + '.';
+      } else {
+        if (!ehNum) tk.push(k);
+        else if (/e/.test(u)) return;
+        else if (u.replace(/[-.]/g, '').length >= 12) return;
+        else if (u === '0') tk[tk.length - 1] = k;
+        else if (u === '-0') tk[tk.length - 1] = '-' + k;
+        else tk[tk.length - 1] = u + k;
+      }
+    }
+    mostrar();
+  }
+
+  function abrir(sim){
+    pn.hidden = !sim; fab.setAttribute('aria-expanded', String(sim));
+    fab.classList.toggle('on', sim);
+    fab.setAttribute('aria-label', sim ? 'Fechar a calculadora' : 'Abrir a calculadora');
+    if (sim) mostrar();
+  }
+  fab.onclick = () => abrir(pn.hidden);
+  pn.querySelector('.calc-x').onclick = () => { abrir(false); fab.focus(); };
+  pn.querySelector('.calc-teclas').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) tecla(b.dataset.k); });
+  document.addEventListener('keydown', e => {
+    if (pn.hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ''))) return;
+    const m = { '*':'×', 'x':'×', '/':'÷', '-':'−', '+':'+', '.':',', ',':',', 'Enter':'=', '=':'=', 'Backspace':'⌫', 'Delete':'C' }[e.key] || (/^\d$/.test(e.key) ? e.key : null);
+    if (e.key === 'Escape'){ abrir(false); fab.focus(); e.preventDefault(); return; }
+    if (m){ tecla(m); e.preventDefault(); }
+  });
+
+  /* Mostra o botão só dentro de uma lista */
+  function naLista(){
+    const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+    const t = SITE.temas.find(x => x.id === p[0]);
+    return !!(t && p[1] && t.listas.some(l => l.id === p[1])) && !precisaLogin();
+  }
+  function atualizar(){
+    const ok = naLista();
+    fab.hidden = !ok; document.body.classList.toggle('com-calc', ok);
+    if (!ok) abrir(false);
+  }
+  window.addEventListener('hashchange', atualizar);
+  document.addEventListener('click', () => setTimeout(atualizar, 0));
+  atualizar();
+})();
 </script>
 </body>
 </html>
