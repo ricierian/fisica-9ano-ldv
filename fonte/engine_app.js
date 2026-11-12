@@ -205,7 +205,8 @@ function resumoLista(){
     evento: 'lista concluída', tema: T.nome, lista: 'Lista ' + LI.num,
     acertos: correctCount(), total: LI.Q.length,
     basico: porNivel('básico'), intermediario: porNivel('intermediário'), avancado: porNivel('avançado'),
-    erradas: LI.Q.map((q,i) => i).filter(i => status(i) !== 'ok').map(i => i + 1).join(', '),
+    erradas: (() => { const ids = LI.Q.map((q,i) => i), er = ids.filter(i => status(i) === 'bad').map(i => i + 1).join(', '), pe = ids.filter(i => status(i) === 'none').map(i => i + 1).join(', ');
+      return pe ? (er ? er + ' · ' : '') + 'não respondeu: ' + pe : er; })(),
     dicas: Object.keys(st.hints || {}).filter(k => st.hints[k]).length,
     tempoMin: Math.round((st.tempo || 0) / 6) / 10
   };
@@ -305,7 +306,13 @@ function renderQuestion(i){
       ${done ? `<button class="btn primary" id="nextBtn">${last ? 'Ver meu resultado' : 'Próxima questão →'}</button>`
              : (!last ? `<button class="btn ghost" id="jumpBtn">Pular por enquanto</button>` : '')}
     </div>
-  </article>`;
+  </article>
+  ${answeredCount() > 0 && answeredCount() < Q.length && st.parcial !== answeredCount() ? `<div class="row end-row"><span class="small" id="endNote"></span><span class="spacer"></span><button class="btn ghost" id="endBtn">Encerrar a lista e registrar</button></div>` : ''}`;
+  const eb = $('endBtn'); let eArmed = false;
+  if (eb) eb.onclick = () => {
+    if (!eArmed){ eArmed = true; eb.classList.remove('ghost'); eb.classList.add('primary'); eb.textContent = `Confirmar: registrar ${correctCount()} / ${Q.length}`; $('endNote').textContent = `${answeredCount()} de ${Q.length} respondidas. Toque de novo para confirmar.`; return; }
+    registrarParcial(); goQ(Q.length);
+  };
   $('qa').querySelectorAll('[data-pick]').forEach(b => b.onclick = () => answer(i, +b.dataset.pick));
   const h = $('hintBtn'); if (h) h.onclick = () => { st.hints[i] = true; save(); renderQuestion(i); };
   const s = $('skipBtn'); if (s) s.onclick = () => answer(i, -1);
@@ -323,10 +330,15 @@ function answer(i, k){
   if (fb) fb.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 }
 
+function registrarParcial(){ contarTempo(); st.parcial = answeredCount(); save(); enviar(resumoLista()); }
 function renderEnd(){
   const Q = LI.Q, c = correctCount(), n = answeredCount();
   const msg = n < Q.length
-    ? `Você ainda tem ${Q.length - n} questão(ões) sem responder. Toque nelas abaixo para terminar.`
+    ? (n > 0 && st.parcial === n
+        ? `<b>Resultado registrado</b> com ${n} de ${Q.length} questões respondidas. Se quiser, ainda dá para responder as ${Q.length - n} que faltam (toque nelas abaixo): o resultado novo também vai para o professor.`
+        : `Você ainda tem ${Q.length - n} questão(ões) sem responder. Toque nelas abaixo para terminar.`)
+      + (n === 0 || st.parcial === n ? ''
+        : ` Se quiser parar por aqui, use <b>Encerrar e registrar</b>: o resultado vai para o professor como está, e as questões sem resposta aparecem como não respondidas.`)
     : c >= Math.ceil(Q.length * 0.9) ? 'Excelente! Você domina este conteúdo. Releia as pegadinhas para chegar ao teste ainda mais seguro.'
     : c >= Math.ceil(Q.length * 0.6) ? 'Bom trabalho. Revise as questões que errou, com atenção especial às conversões de unidades: é onde mais se perde ponto.'
     : 'Vale revisar a caixa de ferramentas e refazer as questões com calma, acompanhando cada passo da resolução, antes do teste.';
@@ -335,6 +347,7 @@ function renderEnd(){
     <div class="qnum">Resultado</div>
     <div class="score">${c}<span> / ${Q.length}</span></div>
     <p style="margin:0">${msg}</p>
+    ${n > 0 && n < Q.length && st.parcial !== n ? `<div class="row"><button class="btn primary" id="parcialBtn">Encerrar e registrar</button><span class="small" id="parcialNote"></span></div>` : ''}
     <ul class="reslist">
       ${Q.map((q,i)=>{ const s = status(i); const t = s==='ok'?'✓ certa':s==='bad'?(st.answers[i]===-1?'→ vista':'✗ errada'):'— pendente';
         return `<li><button class="res ${s}" data-go="${i}"><b>Questão ${i+1}</b><span class="st">${t}</span></button></li>`; }).join('')}
@@ -345,6 +358,11 @@ function renderEnd(){
       <span class="small" id="resetNote"></span>
     </div>
   </section>`;
+  const pb = $('parcialBtn'); let pArmed = false;
+  if (pb) pb.onclick = () => {
+    if (!pArmed){ pArmed = true; pb.textContent = `Confirmar: registrar ${c} / ${Q.length}`; $('parcialNote').textContent = 'Toque de novo para confirmar.'; return; }
+    registrarParcial(); renderEnd();
+  };
   const r = $('resetBtn'); let armed = false;
   r.onclick = () => {
     if (!armed){ armed = true; r.textContent = 'Confirmar: apagar minhas respostas'; $('resetNote').textContent = 'Toque de novo para confirmar.'; return; }

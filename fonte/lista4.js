@@ -160,7 +160,7 @@ const Q4 = [
   steps:[
     ['Fase de aceleração', `<div class="eq">t<sub>1</sub> = ${f('20 − 0','2')} = 10 s</div><div class="eq">d<sub>1</sub> = ${f('1','2')} · 2 · 10² = 100 m</div><p>Em t = 10 s, o carro está a 100 m de O, já a 20 m/s.</p>`],
     ['Onde cada sinal deve abrir', `<p>100 m antes de cada semáforo:</p><ul><li>A (em 400 m): ponto em 300 m</li><li>B (em 800 m): ponto em 700 m</li><li>C (em 1 200 m): ponto em 1 100 m</li></ul>`],
-    ['Tempos', `<div class="eq">A: 10 + ${f('300 − 100','20')} = 10 + 10 = 20 s</div><div class="eq">B: 10 + ${f('700 − 100','20')} = 10 + 30 = 40 s</div><div class="eq">C: 10 + ${f('1 100 − 100','20')} = 10 + 50 = 60 s</div><p>Resposta: <span class="hl">20 s, 40 s e 60 s</span>.</p>`],
+    ['Tempos', `<p>Depois da fase de aceleração (10 s e 100 m), faltam 200 m, 600 m e 1 000 m até os pontos de A, B e C, todos a 20 m/s:</p><div class="eq">A: 10 + ${f('200','20')} = 20 s</div><div class="eq">B: 10 + ${f('600','20')} = 40 s</div><div class="eq">C: 10 + ${f('1 000','20')} = 60 s</div><p>Resposta: <span class="hl">20 s, 40 s e 60 s</span>.</p>`],
   ],
   alt:'Depois que o carro atinge 20 m/s, ele leva 400 ÷ 20 = 20 s entre um semáforo e o seguinte. Por isso os tempos de A, B e C crescem de 20 em 20 segundos.',
   warn:'15, 35 e 55 s (alternativa a) supõem o carro a 20 m/s desde a partida, ignorando os 10 s de aceleração. E 25, 45 e 65 s (alternativa b) calculam a chegada aos semáforos, e não ao ponto 100 m antes deles.'
@@ -171,9 +171,9 @@ const Q4 = [
   opts:['4,4 m','11 m','14,4 m','15,4 m','25,4 m'], ans:3,
   hint:'Compare os dois a partir do instante em que o atento freia (os dois estão juntos a 10 m/s). O distraído tem dois trechos: 1 s ainda acelerando e depois a frenagem, que começa com uma velocidade maior.',
   steps:[
-    ['Motorista atento', `<div class="eq">0² = 10² − 2 · 5 · d &nbsp;⇒&nbsp; d = ${f('100','10')} = 10 m</div>`],
+    ['Motorista atento', `<div class="eq">0² = 10² − 2 · 5 · d</div><div class="eq">d = ${f('100','10')} = 10 m</div>`],
     ['Distraído: o segundo a mais', `<p>Continua acelerando a 2 m/s² por 1 s, a partir de 10 m/s:</p><div class="eq">d<sub>1</sub> = 10 · 1 + ${f('1','2')} · 2 · 1² = 11 m</div><div class="eq">v = 10 + 2 · 1 = 12 m/s</div>`],
-    ['Distraído: frenagem', `<div class="eq">0² = 12² − 2 · 5 · d<sub>2</sub> &nbsp;⇒&nbsp; d<sub>2</sub> = ${f('144','10')} = 14,4 m</div>`],
+    ['Distraído: frenagem', `<div class="eq">0² = 12² − 2 · 5 · d<sub>2</sub></div><div class="eq">d<sub>2</sub> = ${f('144','10')} = 14,4 m</div>`],
     ['Diferença', `<div class="eq">(11 + 14,4) − 10 = <span class="hl">15,4 m</span></div>`],
   ],
   alt:'O celular custa duas vezes: o carro anda 11 m antes de começar a frear e ainda chega ao freio mais rápido (12 m/s em vez de 10 m/s), o que aumenta também a distância de frenagem.',

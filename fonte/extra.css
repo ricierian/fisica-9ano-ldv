@@ -72,3 +72,4 @@ body.com-calc .wrap{padding-bottom:96px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .calc-exp.calc-final{color:var(--lane)}}
 @media print{.calc,.calc-fab{display:none!important}}
 :root[data-theme="dark"] .calc-exp.calc-final{color:var(--lane)}
+@media (max-width:420px){.eq{font-size:15px;padding:8px 10px}.step{grid-template-columns:26px 1fr;gap:9px}}

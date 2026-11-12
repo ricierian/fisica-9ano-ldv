@@ -15,7 +15,7 @@ opts:['2,4 min','12 min','15 min','25 min','42 min'], ans:3,
 hint:'Isole o tempo na fórmula: Δt = Δs ÷ v. Como a velocidade está em km/h, o resultado sai em horas.',
 steps:[
 ['Dados', `<ul><li>Distância: Δs = 5,0 km</li><li>Velocidade: v = 12 km/h</li><li>Pede-se: Δt (as alternativas estão em minutos)</li></ul>`],
-['Isolar o tempo', `<div class="eq">v = ${f('Δs','Δt')} &nbsp;⇒&nbsp; Δt = ${f('Δs','v')} = ${f('5,0 km','12 km/h')} = ${f('5','12')} h</div>`],
+['Isolar o tempo', `<div class="eq">v = ${f('Δs','Δt')} &nbsp;⇒&nbsp; Δt = ${f('Δs','v')}</div><div class="eq">Δt = ${f('5,0 km','12 km/h')} = ${f('5','12')} h</div>`],
 ['Passar de horas para minutos', `<div class="eq">${f('5','12')} h = ${f('5','12')} × 60 min = <span class="hl">25 min</span></div>`],
 ],
 alt:'A 12 km/h, a pessoa anda 12 km em 60 min, ou seja, 1 km a cada 5 min. Para 5 km: 5 × 5 = 25 min.',
@@ -59,7 +59,7 @@ steps:[
 ['Converter as unidades', `<p>Como a resposta é em km/h, a distância vai para km e o tempo para horas:</p>
 <div class="eq">1 500 m = 1,5 km &nbsp;&nbsp;(÷ 1 000)</div>
 <div class="eq">15 min = ${f('15','60')} h = ${f('1','4')} h</div>`],
-['Aplicar a fórmula', `<div class="eq">v<sub>m</sub> = ${f('Δs','Δt')} = ${f('1,5 km',f('1','4')+' h')} = 1,5 × 4 = <span class="hl">6,0 km/h</span></div>
+['Aplicar a fórmula', `<div class="eq">v<sub>m</sub> = ${f('Δs','Δt')} = ${f('1,5 km',f('1','4')+' h')}</div><div class="eq">v<sub>m</sub> = 1,5 × 4 = <span class="hl">6,0 km/h</span></div>
 <p>Dividir por ¼ é o mesmo que multiplicar por 4.</p>`],
 ],
 alt:`Repare que 15 min = 15 × 60 = 900 s. Então v = ${f('1 500 m','900 s')} ≈ 1,67 m/s. Convertendo: 1,67 × 3,6 ≈ 6,0 km/h.`,
@@ -89,7 +89,7 @@ steps:[
 ['Dados', `<ul><li>Tempo da volta: Δt = 1 min 30 s</li><li>Velocidade média: v = 216 km/h</li><li>Pede-se: comprimento da pista (Δs) em metros</li></ul>`],
 ['Converter as unidades', `<div class="eq">Δt = 60 s + 30 s = 90 s</div>
 <div class="eq">v = 216 km/h ÷ 3,6 = 60 m/s</div>`],
-['Calcular a distância', `<div class="eq">Δs = v · Δt = 60 m/s × 90 s = <span class="hl">5 400 m</span></div>`],
+['Calcular a distância', `<div class="eq">Δs = v · Δt</div><div class="eq">Δs = 60 m/s × 90 s = <span class="hl">5 400 m</span></div>`],
 ],
 alt:`216 km/h significa 216 km em 60 min, ou seja, 3,6 km por minuto. Como 90 s = 1,5 min, a distância é 3,6 × 1,5 = 5,4 km = 5 400 m.`,
 warn:'216 × 90 = 19 440 (alternativa d) mistura km/h com segundos. Velocidade e tempo precisam estar em unidades que combinam.'
@@ -117,7 +117,7 @@ steps:[
 ['Tamanho de uma passada', `<p>“Pé” aqui é uma unidade de medida. Se 3 pés = 1 m, então:</p>
 <div class="eq">4,5 pés = 1,5 × 3 pés = 1,5 m</div>
 <p>Cada passada (de um apoio do pé direito até o próximo) mede 1,5 m.</p>`],
-['Distância em 1 minuto', `<div class="eq">60 passadas × 1,5 m = 90 m por minuto</div>`],
+['Distância em 1 minuto', `<div class="eq">60 × 1,5 m = 90 m por minuto</div>`],
 ['Distância em 1 hora', `<div class="eq">90 m × 60 min = 5 400 m = 5,4 km</div>
 <p>Ele anda 5,4 km a cada hora, ou seja, <span class="hl">5,4 km/h</span>.</p>`],
 ],
@@ -135,7 +135,7 @@ steps:[
 <div class="eq">v<sub>total</sub> = ${f('60 m','40 s')} = 1,5 m/s</div>`],
 ['Descontar a ajuda da esteira', `<p>Como a pessoa anda no mesmo sentido da esteira, as velocidades se somam:</p>
 <div class="eq">v<sub>total</sub> = v<sub>esteira</sub> + v<sub>pessoa</sub></div>
-<div class="eq">1,5 = 0,8 + v<sub>pessoa</sub> &nbsp;⇒&nbsp; v<sub>pessoa</sub> = <span class="hl">0,7 m/s</span></div>`],
+<div class="eq">1,5 = 0,8 + v<sub>pessoa</sub></div><div class="eq">v<sub>pessoa</sub> = 1,5 − 0,8 = <span class="hl">0,7 m/s</span></div>`],
 ],
 alt:'Tire a prova: em 40 s, a esteira leva a pessoa 0,8 × 40 = 32 m, e as próprias pernas dela a levam 0,7 × 40 = 28 m. Total: 32 + 28 = 60 m, exatamente o comprimento da esteira.',
 warn:'1,5 m/s (alternativa b) é a velocidade em relação ao chão, mas a pergunta é sobre a velocidade da pessoa caminhando sobre a esteira. E 2,3 m/s (alternativa a) soma a esteira em vez de descontar.'
@@ -146,8 +146,8 @@ text:'Um automóvel que se desloca com uma velocidade escalar constante de 90 km
 opts:['t = 10 s','t = 20 s','t = 30 s','t = 40 s','t = 50 s'], ans:2,
 hint:'Passe as velocidades para m/s. A cada segundo, quantos metros o carro de trás “tira” da distância de 150 m?',
 steps:[
-['Converter para m/s', `<div class="eq">Carro 1 (atrás): 90 ÷ 3,6 = 25 m/s</div>
-<div class="eq">Carro 2 (à frente): 72 ÷ 3,6 = 20 m/s</div>`],
+['Converter para m/s', `<p>Carro 1 (atrás) e carro 2 (à frente):</p><div class="eq">v<sub>1</sub> = 90 ÷ 3,6 = 25 m/s</div>
+<div class="eq">v<sub>2</sub> = 72 ÷ 3,6 = 20 m/s</div>`],
 ['Quanto a distância diminui por segundo', `<p>A cada segundo, o carro 1 anda 25 m e o carro 2 anda 20 m. A distância entre eles diminui:</p>
 <div class="eq">25 − 20 = 5 m a cada segundo</div>`],
 ['Tempo para zerar os 150 m', `<div class="eq">t = ${f('150 m','5 m/s')} = <span class="hl">30 s</span></div>

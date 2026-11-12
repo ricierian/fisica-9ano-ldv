@@ -134,7 +134,7 @@ const Q2 = [
   steps:[
     ['Função horária', `<div class="eq">s = 30 + 90t</div><p>Com s em km e t em horas.</p>`],
     ['Converter o tempo', `<div class="eq">20 min = ${f('20','60')} h = ${f('1','3')} h</div>`],
-    ['Calculando a posição', `<div class="eq">s = 30 + 90 × ${f('1','3')} = 30 + 30 = <span class="hl">km 60</span></div>`],
+    ['Calculando a posição', `<div class="eq">s = 30 + 90 × ${f('1','3')}</div><div class="eq">s = 30 + 30 = <span class="hl">km 60</span></div>`],
   ],
   alt:'A 90 km/h, o trem anda 90 km em 60 min, ou seja, 30 km a cada 20 min. Ele sai do km 30 e anda mais 30 km: chega ao km 60.',
   warn:'Usar t = 20 direto dá 30 + 90 × 20 = 1 830 (alternativa e), um marco absurdo para 20 minutos de viagem. Velocidade em km/h pede tempo em horas.'
